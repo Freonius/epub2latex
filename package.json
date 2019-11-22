@@ -1,0 +1,27 @@
+{
+  "name": "epub2latex",
+  "version": "1.0.0",
+  "description": "Convert epubs to latex",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Freonius/epub2latex.git"
+  },
+  "keywords": [
+    "epub",
+    "latex",
+    "ebook"
+  ],
+  "author": "Fred Pirani",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Freonius/epub2latex/issues"
+  },
+  "homepage": "https://github.com/Freonius/epub2latex#readme",
+  "dependencies": {
+    "dom-parser": "^0.1.6"
+  }
+}
