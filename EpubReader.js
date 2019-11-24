@@ -1,24 +1,13 @@
 const StreamZip = require("node-stream-zip");
 const DomParser = require('dom-parser');
+const Utilities = require("./Epub2LatexUtils");
 const parser = new DomParser();
-
-const getAttr = (node, attr) => {
-    let title = "";
-    if (node.attributes.length > 0) {
-        for (let i = 0; i < node.attributes.length; i++) {
-            if (node.attributes[i].name === attr) {
-                title = node.attributes[i].value;
-            }
-        }
-    }
-    return title;
-};
 
 const getContent = (node) => {
     for (let i = 0; i < node.childNodes.length; i++) {
         let n = node.childNodes[i];
         if (n.nodeName === "content") {
-            return getAttr(n, "src")
+            return Utilities.getAttribute(n, "src");
         }
     }
     return "";
@@ -109,7 +98,7 @@ class EpubReader {
                         let els = dom.getElementsByTagName("navPoint");
                         for (let i = 0; i < els.length; i++) {
                             let element = els[i];
-                            let playOrder = parseInt(getAttr(element, "playOrder"));
+                            let playOrder = parseInt(Utilities.getAttribute(element, "playOrder"));
                             playOrder--;
                             let src = getContent(element);
                             order[playOrder] = src;

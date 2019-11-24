@@ -1,7 +1,7 @@
 "use strict";
 
 const DomParser = require('dom-parser');
-const fs = require("fs");
+const Utilities = require("./Epub2LatexUtils");
 const parser = new DomParser();
 
 // Iterate the element's children
@@ -14,27 +14,15 @@ const il = (n) => {
 };
 
 const getClasses = (node) => {
-    let classes = [];
-    if (node.attributes.length > 0) {
-        for (let i = 0; i < node.attributes.length; i++) {
-            if (node.attributes[i].name === "class") {
-                classes = node.attributes[i].value.toLowerCase().split(" ");
-            }
-        }
+    let classList = Utilities.getAttribute(node, "class");
+    if (classList !== "") {
+        return classList.toLowerCase().split(" ");
     }
-    return classes;
+    return [];
 };
 
 const getTitleAttr = (node) => {
-    let title = "";
-    if (node.attributes.length > 0) {
-        for (let i = 0; i < node.attributes.length; i++) {
-            if (node.attributes[i].name === "title") {
-                title = node.attributes[i].value;
-            }
-        }
-    }
-    return title;
+    return Utilities.getAttribute(node, "title");
 };
 
 const fixDropcaps = (classes) => {
