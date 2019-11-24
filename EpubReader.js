@@ -2,6 +2,78 @@ const StreamZip = require("node-stream-zip");
 const DomParser = require('dom-parser');
 const parser = new DomParser();
 
+const getAttr = (node, attr) => {
+    let title = "";
+    if (node.attributes.length > 0) {
+        for (let i = 0; i < node.attributes.length; i++) {
+            if (node.attributes[i].name === attr) {
+                title = node.attributes[i].value;
+            }
+        }
+    }
+    return title;
+};
+
+const getContent = (node) => {
+    for (let i = 0; i < node.childNodes.length; i++) {
+        let n = node.childNodes[i];
+        if (n.nodeName === "content") {
+            return getAttr(n, "src")
+        }
+    }
+    return "";
+};
+
+class EpubPage {
+
+    _id;
+    _filename;
+    _buffer;
+
+    constructor() {
+        this._id = 0;
+        this._filename = "";
+        this._buffer = null;
+    }
+
+    get id() {
+        return this._id;
+    }
+
+    set id(v) {
+        this._id = v;
+    }
+
+    get order() {
+        return this._id;
+    }
+
+    set order(v) {
+        this._id = v;
+    }
+
+    get filename() {
+        return this._filename;
+    }
+
+    set filename(v) {
+        this._filename = v;
+    }
+
+    get content() {
+        return this._buffer.toString('utf8');
+    }
+
+    set buffer(v) {
+        if (Buffer.isBuffer(v)) {
+            this._buffer = v;
+        }
+        else {
+            throw `EpubPage.buffer must be of type Buffer, ${typeof(v)} passed`;
+        }
+    }
+
+};
 
 class EpubReader {
     constructor(file) {
@@ -16,61 +88,7 @@ class EpubReader {
         this._file = file;
     }
 
-    getOrder(onError = (e) => {}) {
-        const zip = new StreamZip({
-            file: this._file,
-            storeEntries: true
-        });
-        
-        zip.on('error', err => { 
-            onError(err);
-         });
-
-         const getAttr = (node, attr) => {
-            let title = "";
-            if (node.attributes.length > 0) {
-                for (let i = 0; i < node.attributes.length; i++) {
-                    if (node.attributes[i].name === attr) {
-                        title = node.attributes[i].value;
-                    }
-                }
-            }
-            return title;
-        };
-
-        const getContent = (node) => {
-            for (let i = 0; i < node.childNodes.length; i++) {
-                let n = node.childNodes[i];
-                if (n.nodeName === "content") {
-                    return getAttr(n, "src")
-                }
-            }
-            return "";
-        };
-         
-         zip.on('ready', () => {
-            //console.log('Entries read: ' + zip.entriesCount);
-            for (const entry of Object.values(zip.entries())) {
-                const desc = entry.isDirectory ? 'directory' : `${entry.size} bytes`;
-                if (entry.name.endsWith("ncx")) {
-                    const data = zip.entryDataSync(entry.name);
-                    let dom = parser.parseFromString(data.toString('utf8'));
-                    let els = dom.getElementsByTagName("navPoint");
-                    for (let i = 0; i < els.length; i++) {
-                        let element = els[i];
-                        let playOrder = parseInt(getAttr(element, "playOrder"));
-                        let src = getContent(element);
-                        this._order[playOrder] = src;
-                    }
-                }
-            }
-            // Do not forget to close the file once you're done
-            zip.close()
-        });
-    }
-
     readXhtml = (f, onError = (e) => {}) => {
-        this.getOrder(onError);
         const zip = new StreamZip({
             file: this._file,
             storeEntries: true
@@ -78,20 +96,45 @@ class EpubReader {
         
         zip.on('error', err => { 
             onError(err);
-         });
-         
-         zip.on('ready', () => {
-            for (let i = 0; i < this._order.length; i++) {
-                if (this._order[i]) {
-                    let filename = `OEBPS/${this._order[i]}`;
-                    console.log(filename);
-                    const data = zip.entryDataSync(filename);
-                    // TODO: figure out the function structure and what to pass
-                    f(filename, data.toString('utf8'));
-                }                
+        });
+        
+        zip.on('ready', () => {
+            try {
+                let order = new Array();
+                // First let's get the file order
+                for (const entry of Object.values(zip.entries())) {
+                    if (entry.name.endsWith("ncx")) {
+                        const data = zip.entryDataSync(entry.name);
+                        let dom = parser.parseFromString(data.toString('utf8'));
+                        let els = dom.getElementsByTagName("navPoint");
+                        for (let i = 0; i < els.length; i++) {
+                            let element = els[i];
+                            let playOrder = parseInt(getAttr(element, "playOrder"));
+                            playOrder--;
+                            let src = getContent(element);
+                            order[playOrder] = src;
+                        }
+                    }
+                }
+                
+                // Then let's read the files in order
+                for (let i = 0; i < order.length; i++) {
+                    if (order[i]) {
+                        let filename = `OEBPS/${order[i]}`;
+                        let page = new EpubPage();
+                        page.order = i;
+                        page.filename = order[i];
+                        page.buffer = zip.entryDataSync(filename);
+                        f(page);
+                    }                
+                }
             }
-            // Do not forget to close the file once you're done
-            zip.close()
+            catch (error) {
+                throw error;
+            }
+            finally {
+                zip.close()
+            }
         });
     }
 }

@@ -97,7 +97,7 @@ const classConverter = (classes, title = "", isNote = false) => {
                 break;
             case "somequote": // TODO: Find out what this does 
                 pre += "\\somequote";
-                if (classes.include("bigsingle")) {
+                if (classes.includes("bigsingle")) {
                     pre += "single";
                 }
                 pre += "{";
@@ -105,21 +105,21 @@ const classConverter = (classes, title = "", isNote = false) => {
                 break;
             case "bigquote":
                 pre += "\\bigquotebefore";
-                if (classes.include("bigsingle")) {
+                if (classes.includes("bigsingle")) {
                     pre += "single";
                 }
                 pre += "{";
-                if (!classes.include("keepopen")) {
+                if (!classes.includes("keepopen")) {
                     post += "}";
                 }
                 break;
             case "endquote":
                 pre += "\\bigquoteafter";
-                if (classes.include("bigsingle")) {
+                if (classes.includes("bigsingle")) {
                     pre += "single";
                 }
                 pre += "{";
-                if (!classes.include("keepopen")) {
+                if (!classes.includes("keepopen")) {
                     post += "}";
                 }
                 break;
@@ -316,30 +316,24 @@ class LatexConverter {
         
     }
 
-    convertPage(xhtml, done) {
+    convertPage(html) {
         let latex = "";
-        fs.readFile(xhtml, "utf8", (err, html) => {
-            
-            if (!err){
-                let dom = parser.parseFromString(html);
-                for (let i = 0; i < dom.getElementsByTagName("body")[0].childNodes.length; i++) {
-                    let element = dom.getElementsByTagName("body")[0].childNodes[i];
+        let dom = parser.parseFromString(html);
+        for (let i = 0; i < dom.getElementsByTagName("body")[0].childNodes.length; i++) {
+            let element = dom.getElementsByTagName("body")[0].childNodes[i];
 
-                    // Skip some elements, pre-cleaning
-                    if (element.nodeName === "#text" && element.childNodes == undefined && element.textContent.trim() == "") {
-                        // Avoid empty text bits in the body
-                        continue;
-                    }
-                    latex += convertElement(element);
-                    
-                }
-                done(latex)
+            // Skip some elements, pre-cleaning
+            if (element.nodeName === "#text" && element.childNodes == undefined && element.textContent.trim() == "") {
+                // Avoid empty text bits in the body
+                continue;
             }
-            else {
-                done("% ERROR");
+            try {
+                latex += convertElement(element);
+            } catch (err) {
+                console.log(err);
             }
-            
-          });
+        }
+        return latex;
     }
 
 }

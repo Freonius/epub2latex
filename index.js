@@ -9,4 +9,7 @@ let xhtm = "capitolo_01.xhtml";
 
 let er = new EpubReader("Bower_wc.epub");
 //er.getOrder();
-er.readXhtml(null);
+er.readXhtml((p) => {
+    let latexPage = conv.convertPage(p.content);
+    console.log(latexPage);
+});
