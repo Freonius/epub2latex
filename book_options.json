@@ -1,0 +1,19 @@
+{
+    "title": "An Awesome Book",
+    "subtitle": "How To Succed In Making Books",
+    "author": "Gimme A. Break",
+    "language": "it",
+    "isbn": "978-88-XXXXX-XX",
+    "font": {
+        "indent": "6mm",
+        "emergencyStretch": "10pt"
+    },
+    "geometry": {
+        "topMargin": "10mm",
+        "bottomMargin": "10mm",
+        "interiorMargin": "10mm",
+        "exteriorMargin": "10mm",
+        "pageWidth": "5.25in",
+        "pageHeight": "8in"
+    }
+}

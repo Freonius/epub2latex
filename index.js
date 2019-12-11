@@ -7,9 +7,10 @@ const conv = new Latex();
 let xhtm = "capitolo_01.xhtml";
 //conv.convertPage(xhtm, (latex) => {});
 
-let er = new EpubReader("Bower_wc.epub");
+
 //er.getOrder();
-er.readXhtml((p) => {
-    let latexPage = conv.convertPage(p.content);
+EpubReader("Bower_wc.epub")
+/*for (let p of EpubReader("Bower_wc.epub")) {
+    let latexPage = conv.convertPage(p.toString('utf8'));
     console.log(latexPage);
-});
+}*/
