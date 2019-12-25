@@ -20,8 +20,8 @@ function readEpubChapters(file) {
         file: file,
         storeEntries: true
     });
-    
-    zip.on("error", (err) => { 
+
+    zip.on("error", (err) => {
         throw err;
     });
     zip.on("ready", () => {
@@ -33,8 +33,7 @@ function readEpubChapters(file) {
                     const data = zip.entryDataSync(entry.name);
                     let dom = parser.parseFromString(data.toString("utf8"));
                     let els = dom.getElementsByTagName("navPoint");
-                    for (let i = 0; i < els.length; i++) {
-                        let element = els[i];
+                    for (const element of els) {
                         let playOrder = parseInt(Utilities.getAttribute(element, "playOrder"));
                         playOrder--;
                         let src = getContent(element);
@@ -42,20 +41,19 @@ function readEpubChapters(file) {
                     }
                 }
             }
-            
+
             // Then let's read the files in order
             for (let i = 0; i < order.length; i++) {
                 if (order[i]) {
                     zip.entryDataSync(`OEBPS/${order[i]}`); // TODO: return value or call callback (.toString("utf8");)
-                }                
+                }
             }
-        }
-        catch (error) {
+        } catch (error) {
             throw error;
-        }
-        finally {
+        } finally {
             zip.close()
         }
     });
 }
+const x = "";
 module.exports = readEpubChapters;

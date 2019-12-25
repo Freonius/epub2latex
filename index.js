@@ -7,7 +7,6 @@ const conv = new Latex();
 let xhtm = "capitolo_01.xhtml";
 //conv.convertPage(xhtm, (latex) => {});
 
-
 //er.getOrder();
 EpubReader("Bower_wc.epub")
 /*for (let p of EpubReader("Bower_wc.epub")) {
