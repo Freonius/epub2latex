@@ -7,9 +7,7 @@ const parser = new DomParser();
 // Iterate the element's children
 const il = (n) => {
   let txt = "";
-  for (let i = 0; i < n.childNodes.length; i++) {
-    txt += convertElement(n.childNodes[i]);
-  }
+  n.childNodes.forEach((element) => (txt += convertElement(element)));
   return txt;
 };
 
@@ -25,46 +23,56 @@ const getTitleAttr = (node) => {
   return Utilities.getAttribute(node, "title");
 };
 
+/**
+ * @param  {string[]} classes List of css classes
+ * @returns {string} Returns either the calculated LaTeX options for the \lettrine command, or an empty string
+ */
 const fixDropcaps = (classes) => {
   let arr = [];
-  for (let i = 0; i < classes.length; i++) {
-    if (classes[i].startsWith("findent")) {
+  classes.forEach((cssClass) => {
+    if (cssClass.startsWith("findent")) {
       arr.push(
-        `findent=${classes[i]
+        `findent=${cssClass
           .replace("findent", "")
           .replace("x", ".")
           .replace("n", "-")}pt`
       );
-    } else if (classes[i].startsWith("lraise")) {
+    } else if (cssClass.startsWith("lraise")) {
       arr.push(
-        `lraise=${classes[i]
+        `lraise=${cssClass
           .replace("lraise", "")
           .replace("x", ".")
           .replace("n", "-")}`
       );
-    } else if (classes[i].startsWith("lhang")) {
+    } else if (cssClass.startsWith("lhang")) {
       arr.push(
-        `lhang=${classes[i]
+        `lhang=${cssClass
           .replace("lhang", "")
           .replace("x", ".")
           .replace("n", "-")}`
       );
     }
-  }
+  });
+
   if (arr.length == 0) {
     return "";
   }
   return `[${arr.join(",")}]`;
 };
 
+/**
+ * @param  {string[]} classes The collection of css classes
+ * @param  {boolean} widow true for widows, false for orphans; the default is true
+ * @returns {string} Can return the actual tag or an empty string
+ */
 const fixWidowOrphan = (classes, widow = true) => {
   let tag = "lnw-"; // Look for widow tag
   if (!widow) {
     tag = "lno-"; // Look for orphan tag
   }
-  for (let i = 0; i < classes.length; i++) {
-    if (classes[i].startsWith(tag)) {
-      return classes[i].replace(tag, "");
+  for (const cssClass of classes) {
+    if (cssClass.startsWith(tag)) {
+      return cssClass.replace(tag, "");
     }
   }
   return "";
@@ -287,25 +295,26 @@ const convertElement = (node) => {
   return txt;
 };
 
-// Escapes illegal characters in latex
+/**
+ * @description Escapes illegal characters in latex
+ * @param  {string} str String to escape
+ * @returns {string} Escaped string
+ */
 const latexEscape = (str) => {
-  str = str.replace("\\", "\\textbackslash{}");
-  str = str.replace("_", "\\_");
-  str = str.replace("$", "\\$");
-  str = str.replace("%", "\\%");
-  str = str.replace("&", "\\&");
-  str = str.replace("#", "\\#");
-
-  str = str.replace("\u2013", "--");
-  str = str.replace("\u2019", "'");
-  str = str.replace("\xad", "\\-");
-  str = str.replace("\u2060", "\\-");
-  str = str.replace("\u200d", "\\-");
-  str = str.replace("\u200b", "{\\hspace{0pt}}");
-
-  str = str.replace("\uffe0", "\\textcent\\");
-
-  return str;
+  return str
+    .replace("\\", "\\textbackslash{}")
+    .replace("_", "\\_")
+    .replace("$", "\\$")
+    .replace("%", "\\%")
+    .replace("&", "\\&")
+    .replace("#", "\\#")
+    .replace("\u2013", "--")
+    .replace("\u2019", "'")
+    .replace("\xad", "\\-")
+    .replace("\u2060", "\\-")
+    .replace("\u200d", "\\-")
+    .replace("\u200b", "{\\hspace{0pt}}")
+    .replace("\uffe0", "\\textcent\\");
 };
 
 class LatexConverter {
